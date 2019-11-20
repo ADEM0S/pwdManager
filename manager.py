@@ -1,14 +1,39 @@
 import sqlite3
 from sqlite3 import Error
 import os
+import sys
 
 run = True
+prompt = '$ '
+verbose = False
+
+
+try:
+    arg1 = sys.argv[0]
+    if arg1 == "verbose":
+        verbose = True
+except:
+    pass
+
+def clear():
+    """clear the screen"""
+
+    try:
+        if sys.platform == 'win32':
+            os.system('cls')
+        elif sys.platform == 'linux':
+            os.system('clear')
+    except Error as e:
+        if verbose:
+            print(e)
 
 def check_master_pass(user, master_pass):
     pwd = c.execute(f"SELECT user_password FROM 'users' WHERE name='{user}'")
-    print(pwd)
+    if verbose :
+        print(pwd)
     pwd = c.fetchall()[0][0]
-    print(pwd)
+    if verbose:
+        print(pwd)
     input()
 
     if master_pass == pwd :
@@ -26,7 +51,8 @@ def create_connection(db_file):
         return conn
 
     except Error as e:
-        print(e)
+        if verbose :
+          print(e)
 
 
 def close_connection(db_file):
@@ -41,12 +67,20 @@ def create_table(cursor, table, args):
     except Error as e : 
         print(e)
 
+
+def store_new_pwd(service, pwd, user):
+    c1 = sqlite3.connect('user.db').cursor()
+    sql = "INSERT INTO {}(service, servpassword) VALUES({},{})".format(user, service, pwd)
+    c1.execute(sql)
+    print("well inserted")
+
+
 if __name__ == '__main__':
 
 
 
     # create the database connection
-    data = create_connection('db.sq3')
+    data = create_connection('users.db')
     # data cursor 
     c = data.cursor()
     # create manager table
@@ -59,25 +93,34 @@ if __name__ == '__main__':
     logged = False
     while not logged:
 
-        os.system('cls')
+        clear()
         print("login or register ? l/r")
-        act = input('$ ')
+        act = input(prompt)
 
-        os.system('cls')
+        clear()
         if act == 'l':
             user = input("User: ")
             master_password = input("Password: ")
             
-            if check_master_pass(user, master_password):
-                logged = True
-            else :
-                print("WRONG PASSWORD")
+            try :
+                if check_master_pass(user, master_password):
+                    logged = True
+                else :
+                    print("WRONG PASSWORD")
+            except Error as e:
+                print("Error occured:")
+                print(e)
 
         elif act == 'r':
             user = input("new user: ")
             pwd = input("new password: ")
 
             c.execute("INSERT INTO users VALUES ( ?, ?)", (user, pwd))
+
+            user_table = user
+            create_table(c, user_table, "(service TEXT, servpassword TEXT)")
+            print("table created")
+
             data.commit()
             logged = True
             print(f"Welcome {user} !")
@@ -92,7 +135,7 @@ if __name__ == '__main__':
     data.commit()
 
     while run:
-        os.system("cls")
+        clear()
         print("Successfully logged in !")
         print(f"You are in the {user}'s manager.")
         print()
@@ -100,6 +143,7 @@ if __name__ == '__main__':
         print('commands:')
         print('q : quit')
         print('gp : get password')
+        print('rg')
         print('****************')
         
         act = input("$ ")
@@ -107,6 +151,19 @@ if __name__ == '__main__':
         if act == 'q':
             run = False
         
+        elif act == 'rp':
+            """register a password for a service"""
+            clear()
+            print("registering a new password:\n")
+            service = input("New service: ")
+            pwd_to_store = input('New password: ')
+
+            store_new_pwd(service, pwd_to_store, user)
+
+            try:
+                pass
+            except:
+                pass
 
 
     data.close()
