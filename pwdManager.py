@@ -158,14 +158,22 @@ def main ():
                     clear()
                     print("Register a password for a service.")
                     serv = input("Service : ")
-                    pwd2reg = input("Password : ")
-                    try:
-                        store_pwd(c, table_name, serv, pwd2reg)
-                        db.commit()
-                    except Error as e:
-                        if verb:
-                            print(e)
-                        print("Something went wrong")
+                    pwd2reg1 = input("Password : ")
+                    pwd2reg2 = input('Reapeat password : ')
+                    if pwd2reg1 == pwd2reg2:
+                        pwd2reg1
+                        try:
+                            store_pwd(c, table_name, serv, pwd2reg1)
+                            db.commit()
+                            clear()
+                            input('Success.')
+                        except Error as e:
+                            if verb:
+                                print(e)
+                            print("Something went wrong")
+                    else:
+                        clear()
+                        input("not the same passwords")
 
 
 
