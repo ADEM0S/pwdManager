@@ -152,6 +152,7 @@ def main ():
 
                 elif act == 'gp':
                     pass
+                    #create a func to get pwd
                 
                 elif act == 'rp':
                     clear()
