@@ -27,13 +27,12 @@ def clear():
 
 
 def check_master_pass(user, master_pass):
-    pwd = c.execute(f"SELECT user_password FROM 'users' WHERE name='{user}'")
+    pwd = c.execute(f"SELECT user_pwd FROM 'users' WHERE name='{user}'")
     if verb:
         print(pwd)
     pwd = pwd.fetchall()
     if verb:
         print(pwd)
-    input()
 
     if master_pass == pwd:
         return True
