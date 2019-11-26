@@ -76,6 +76,7 @@ def store_new_pwd(service, pwd, user):
     try:
         c1.execute(sql)
         print(f"{service} inserted")
+        input()
     except Error as e:
         print(e)
     
