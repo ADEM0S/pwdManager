@@ -94,7 +94,12 @@ def get_serv_pwd(c, table_name, service):
         pass #occures an error wich will provoke the except msg
 
 def del_pwd(c, table_name, service):
+    """deletes a password and the service"""
     c.execute(f"DELETE FROM {table_name} WHERE service=?", (service,))
+
+def update_pwd(c, table_name, service, password):
+    """changes a password with the niewer one"""
+    c.execute(f"UPDATE {table_name} SET service_pwd=? WHERE service=?", (password, service))
 
 def main ():
     clear()
@@ -167,22 +172,24 @@ def main ():
                 clear()
                 print(f"You are in the {user}'s manager.")
                 print()
-                print('****************')
-                print('commands:')
-                print('d : disconnect')
-                print('gp : get password')
-                print('rp : register password')
-                print('dp : delete password')
-                print('****************')
+                print('***********************')
+                print('COMMANDS:')
+                print('@1 : disconnect')
+                print('@2 : get password')
+                print('@3 : register password')
+                print('@4 : delete password')
+                print('@5 : change password')
+                print('@6 : generate pasword')
+                print('***********************')
 
                 act = input(prompt)
 
-                if act == 'd':
+                if act == '1':
                     clear()
                     manRun = False
                     input("disconnected.")
 
-                elif act == 'gp':
+                elif act == '2':
                     clear()
                     serv = input("Wich service do you want to get your password ?\n"+prompt)
                     try:
@@ -190,7 +197,7 @@ def main ():
                     except:
                         input("Password not assigned")
 
-                elif act == 'rp':
+                elif act == '3':
                     clear()
                     print("Register a password for a service.")
                     serv = input("Service : ")
@@ -211,7 +218,7 @@ def main ():
                         clear()
                         input("Not the same passwords.")
                 
-                elif act == 'dp':
+                elif act == '4':
                     clear()
                     serv = input("service to delete the password :\n"+prompt)
                     print()
@@ -225,6 +232,27 @@ def main ():
                                 input("Good job.")
                             except:
                                 input("Not able to delete the password.\nMaybe you putted the wrong name or it doesn't exists")
+
+                elif act == '5':
+                    clear()
+                    print("Change the password of a service.")
+                    serv = input("Service : ")
+                    exp_pwd = get_serv_pwd(c, table_name, serv)                   
+                    old_pwd = getpass.getpass("Old password : ")
+                    if exp_pwd == old_pwd:
+                        new_pwd1 = getpass.getpass("New password : ")
+                        new_pwd2 = getpass.getpass("Confirm new password : ")
+                        if new_pwd1 == new_pwd2:
+                            try:
+                                update_pwd(c, table_name, serv, new_pwd1)
+                                input("Password has been updated.")
+                            except:
+                                input('failed to update the password.')
+
+                elif act == 6:
+                    """generate a fully secured password"""
+                    clear()
+                    print("Password generator.")
 
         elif act == 'q':
             swloop = False
