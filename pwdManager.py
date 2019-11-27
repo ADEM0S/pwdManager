@@ -2,6 +2,7 @@
 
 import sqlite3 as sq
 from sqlite3 import Error
+import getpass #password inputs
 import sys
 import os
 
@@ -43,7 +44,7 @@ def check_pwd(c, user, pwd):
                 input()
             return True
     except:
-        print("User not known")
+        input("User not known")
         return False
 
 
@@ -75,6 +76,14 @@ def store_pwd(c, table_name, service, password):
 
     c.execute(cmd, (service, password))
 
+def no_double(c, table, id):
+    """returns true if the id already exists and false else """
+    
+    ret = c.execute(f"SELECT * FROM {table} WHERE name=? ", (id, )).fetchall()
+    if ret == []:
+        return True
+    else:
+        return False
 
 def main ():
     clear()
@@ -104,28 +113,39 @@ def main ():
                 if act == 'r':
                     print("Register")
                     user = input('User : ')
-                    pwd = input('Password : ')
-
-                    #creates user's table
-                    try:
-                        table_name = user + '_db'
-                        args = '(service TEXT, service_pwd TEXT)'
-                        create_table(c, table_name, args)
-                    except:
-                        print("Error creating {}'s database".format(user))
-                    
-                    #inserts users login infos into users
-                    try:
-                        c.execute("INSERT INTO users VALUES ( ?, ?)", (user, pwd))
-                    except Error as e:
-                        print(e)
-                        print("Error inserting {}'s values".format(user))
-                    db.commit()
+                    pwd1 = getpass.getpass('Password : ')
+                    pwd2 = getpass.getpass("Confirm password : ")
+                    if pwd1 == pwd2:
+                        pwd = pwd1
+                        #creates user's table
+                        try:
+                            table_name = user + '_db'
+                            args = '(service TEXT, service_pwd TEXT)'
+                            create_table(c, table_name, args)
+                        except:
+                            print("Error creating {}'s database".format(user))
+                        
+                        #inserts users login infos into users
+                        try:
+                            if no_double(c, 'users', user):
+                                c.execute("INSERT INTO users VALUES ( ?, ?)", (user, pwd))
+                                input('inserted')
+                                logged = True
+                            else:
+                                input("id already exists\n")
+                        except Error as e:
+                            print(e)
+                            print("Error inserting {}'s values".format(user))
+                        db.commit()
+                        clear()
+                    else:
+                        input("Not the same passwords.")
+                        clear()
 
                 elif act == 'l':
                     print('Login')
                     user = input("User : ")
-                    pwd = input('Password : ')
+                    pwd = getpass.getpass('Password : ')
 
                     if check_pwd(c, user, pwd):
                         logged = True
@@ -180,6 +200,7 @@ def main ():
         elif act == 'q':
             swloop = False
             input("Leaving the program...\n")
+            clear()
                 
     db.commit()
     db.close()
