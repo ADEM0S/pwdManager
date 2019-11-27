@@ -85,6 +85,16 @@ def no_double(c, table, id):
     else:
         return False
 
+def get_serv_pwd(c, table_name, service):
+    """get pwd of a service"""
+    try:
+        pwd = c.execute(f"SELECT service_pwd FROM {table_name} WHERE service =?", (service,)).fetchall()[0][0]
+        return pwd
+    except:
+        pass
+
+
+
 def main ():
     clear()
     db =  create_connection('database.db')
@@ -171,29 +181,33 @@ def main ():
                     input("disconnected.")
 
                 elif act == 'gp':
-                    pass
-                    #create a func to get pwd
-                
+                    clear()
+                    serv = input("Wich service do you want to get your password ?\n")
+                    try:
+                        input("Password for " + serv + " : '" + get_serv_pwd(c, table_name, serv) + "\' \n")
+                    except:
+                        input("Password not assigned")
+
                 elif act == 'rp':
                     clear()
                     print("Register a password for a service.")
                     serv = input("Service : ")
-                    pwd2reg1 = input("Password : ")
-                    pwd2reg2 = input('Reapeat password : ')
+                    pwd2reg1 = getpass.getpass("Password : ")
+                    pwd2reg2 = getpass.getpass('Reapeat password : ')
                     if pwd2reg1 == pwd2reg2:
                         pwd2reg1
                         try:
                             store_pwd(c, table_name, serv, pwd2reg1)
                             db.commit()
                             clear()
-                            input('Success.')
+                            input('Password is stored.')
                         except Error as e:
                             if verb:
                                 print(e)
-                            print("Something went wrong")
+                            input("Something went wrong, the password isn't stored.")
                     else:
                         clear()
-                        input("not the same passwords")
+                        input("Not the same passwords.")
 
 
 
