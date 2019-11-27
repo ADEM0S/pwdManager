@@ -16,7 +16,7 @@ except:
     pass
 
 prompt = "~ $ "
-
+yes = ['Yes', 'yes', 'YES', 'y', 'Y']
 
 def clear():
     """clear the screen"""
@@ -91,9 +91,10 @@ def get_serv_pwd(c, table_name, service):
         pwd = c.execute(f"SELECT service_pwd FROM {table_name} WHERE service =?", (service,)).fetchall()[0][0]
         return pwd
     except:
-        pass
+        pass #occures an error wich will provoke the except msg
 
-
+def del_pwd(c, table_name, service):
+    c.execute(f"DELETE FROM {table_name} WHERE service=?", (service,))
 
 def main ():
     clear()
@@ -116,7 +117,7 @@ def main ():
         
             logged = False
             while not logged:
-                #clear()
+                clear()
                 act = input("login or register ? l/r \n" + prompt)
                 clear()
 
@@ -171,6 +172,7 @@ def main ():
                 print('d : disconnect')
                 print('gp : get password')
                 print('rp : register password')
+                print('dp : delete password')
                 print('****************')
 
                 act = input(prompt)
@@ -182,7 +184,7 @@ def main ():
 
                 elif act == 'gp':
                     clear()
-                    serv = input("Wich service do you want to get your password ?\n")
+                    serv = input("Wich service do you want to get your password ?\n"+prompt)
                     try:
                         input("Password for " + serv + " : '" + get_serv_pwd(c, table_name, serv) + "\' \n")
                     except:
@@ -208,8 +210,21 @@ def main ():
                     else:
                         clear()
                         input("Not the same passwords.")
-
-
+                
+                elif act == 'dp':
+                    clear()
+                    serv = input("service to delete the password :\n"+prompt)
+                    print()
+                    sure = input("Are you sure ??\n"+prompt)
+                    if sure in yes:
+                        rsure = input("Really sure ?!\nYou won't be able to get it back.\n"+prompt)
+                        if rsure in yes:
+                            clear()
+                            try:
+                                del_pwd(c, table_name, serv)
+                                input("Good job.")
+                            except:
+                                input("Not able to delete the password.\nMaybe you putted the wrong name or it doesn't exists")
 
         elif act == 'q':
             swloop = False
