@@ -17,13 +17,14 @@ except:
 
 prompt = "~ $ "
 yes = ['Yes', 'yes', 'YES', 'y', 'Y']
+OS = sys.platform
 
-def clear():
+def clear(OS):
     """clear the screen"""
     try:
-        if sys.platform=="windows":
+        if OS=="windows":
             os.system("cls")
-        elif sys.platform=="linux":
+        elif OS=="linux":
             os.system("clear")
     except Error as e:
         if verb:
@@ -85,6 +86,13 @@ def no_double(c, table, id):
     else:
         return False
 
+def exist_serv(c, table, id):
+    ret = c.execute(f"SELECT * FROM {table} WHERE service=? ", (id, )).fetchall()
+    if ret == []:
+        return False
+    else:
+        return True
+
 def get_serv_pwd(c, table_name, service):
     """get pwd of a service"""
     try:
@@ -101,8 +109,17 @@ def update_pwd(c, table_name, service, password):
     """changes a password with the niewer one"""
     c.execute(f"UPDATE {table_name} SET service_pwd=? WHERE service=?", (password, service))
 
+def open_pwd_gen():
+    try:
+        if OS == 'windows':
+            os.system("python3 ./cmds/PasswordGenerator/windows/password_generator.py")
+        elif OS == 'linux':
+            os.system("python3 ./cmds/PasswordGenerator/linux/password_generator.py")
+    except:
+        input("Not abled to run the program.")
+
 def main ():
-    clear()
+    clear(OS)
     db =  create_connection('database.db')
     c = db.cursor()
 
@@ -115,16 +132,16 @@ def main ():
 
     swloop = True
     while swloop:
-        clear()
+        clear(OS)
         act = input("[q]uit or [c]ontinue ? \n" + prompt)
-        clear()
+        clear(OS)
         if act == 'c':
         
             logged = False
             while not logged:
-                clear()
+                clear(OS)
                 act = input("login or register ? l/r \n" + prompt)
-                clear()
+                clear(OS)
 
                 if act == 'r':
                     print("Register")
@@ -153,10 +170,10 @@ def main ():
                             print(e)
                             print("Error inserting {}'s values".format(user))
                         db.commit()
-                        clear()
+                        clear(OS)
                     else:
                         input("Not the same passwords.")
-                        clear()
+                        clear(OS)
 
                 elif act == 'l':
                     print('Login')
@@ -169,7 +186,7 @@ def main ():
             table_name = user + '_db'
             manRun = True
             while manRun:
-                clear()
+                clear(OS)
                 print(f"You are in the {user}'s manager.")
                 print()
                 print('***********************')
@@ -185,12 +202,12 @@ def main ():
                 act = input(prompt)
 
                 if act == '1':
-                    clear()
+                    clear(OS)
                     manRun = False
                     input("disconnected.")
 
                 elif act == '2':
-                    clear()
+                    clear(OS)
                     serv = input("Wich service do you want to get your password ?\n"+prompt)
                     try:
                         input("Password for " + serv + " : '" + get_serv_pwd(c, table_name, serv) + "\' \n")
@@ -198,7 +215,7 @@ def main ():
                         input("Password not assigned")
 
                 elif act == '3':
-                    clear()
+                    clear(OS)
                     print("Register a password for a service.")
                     serv = input("Service : ")
                     pwd2reg1 = getpass.getpass("Password : ")
@@ -208,25 +225,25 @@ def main ():
                         try:
                             store_pwd(c, table_name, serv, pwd2reg1)
                             db.commit()
-                            clear()
+                            clear(OS)
                             input('Password is stored.')
                         except Error as e:
                             if verb:
                                 print(e)
                             input("Something went wrong, the password isn't stored.")
                     else:
-                        clear()
+                        clear(OS)
                         input("Not the same passwords.")
                 
                 elif act == '4':
-                    clear()
+                    clear(OS)
                     serv = input("service to delete the password :\n"+prompt)
                     print()
                     sure = input("Are you sure ??\n"+prompt)
                     if sure in yes:
                         rsure = input("Really sure ?!\nYou won't be able to get it back.\n"+prompt)
                         if rsure in yes:
-                            clear()
+                            clear(OS)
                             try:
                                 del_pwd(c, table_name, serv)
                                 input("Good job.")
@@ -234,30 +251,42 @@ def main ():
                                 input("Not able to delete the password.\nMaybe you putted the wrong name or it doesn't exists")
 
                 elif act == '5':
-                    clear()
+                    clear(OS)
                     print("Change the password of a service.")
                     serv = input("Service : ")
-                    exp_pwd = get_serv_pwd(c, table_name, serv)                   
-                    old_pwd = getpass.getpass("Old password : ")
-                    if exp_pwd == old_pwd:
-                        new_pwd1 = getpass.getpass("New password : ")
-                        new_pwd2 = getpass.getpass("Confirm new password : ")
-                        if new_pwd1 == new_pwd2:
-                            try:
-                                update_pwd(c, table_name, serv, new_pwd1)
-                                input("Password has been updated.")
-                            except:
-                                input('failed to update the password.')
+                    if exist_serv(c, table_name, serv):
+                        exp_pwd = get_serv_pwd(c, table_name, serv)                   
+                        old_pwd = getpass.getpass("Old password : ")
+                        if exp_pwd == old_pwd:
+                            new_pwd1 = getpass.getpass("New password : ")
+                            new_pwd2 = getpass.getpass("Confirm new password : ")
+                            if new_pwd1 == new_pwd2:
+                                try:
+                                    update_pwd(c, table_name, serv, new_pwd1)
+                                    db.commit()
+                                    input("Password has been updated.")
+                                except:
+                                    input('failed to update the password.')
+                            else:
+                                clear(OS)
+                                input("Passwords aren't the same.")
+                        else:
+                            clear(OS)
+                            input("Old password not correct.")
+                    else:
+                        clear(OS)
+                        input(f"Service \'{serv}\' isn't known.")
 
-                elif act == 6:
+                elif act == '6':
                     """generate a fully secured password"""
-                    clear()
+                    clear(OS)
                     print("Password generator.")
+                    open_pwd_gen()
 
         elif act == 'q':
             swloop = False
             input("Leaving the program...\n")
-            clear()
+            clear(OS)
                 
     db.commit()
     db.close()
